@@ -60,7 +60,7 @@ router.post('/', function(req, res, next) {
 
 router.delete('/(:id)?', function(req, res, next) {
     var options = req.params.id ? 
-        {where: {number: req.params.id}}
+        {where: {id: req.params.id}}
         : {truncate: true};
 
     Day.destroy(options)

@@ -6,9 +6,9 @@ varPromise.then(function() {
 
     $.get('/api/days')
         .then(function(_days) {
-            _days.forEach(function(day) {
+            _days.forEach(function(day, index) {
                 var newDay = dayModule.create(day);
-                newDay.show();
+                if (index === _days.length - 1) tripModule.switchTo(newDay);
             });
         })
         .catch(console.log);

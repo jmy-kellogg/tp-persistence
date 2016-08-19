@@ -20,8 +20,7 @@ varPromise.then(function() {
     window.tripModule = (function() {
 
         // application state
-
-        var days = [],
+        var days = allDays.map(day => dayModule.create(day)),
             currentDay;
 
         // jQuery selections
@@ -57,10 +56,11 @@ varPromise.then(function() {
             if (days.length === 1) {
                 currentDay = newDay;
             }
-            console.log('HEY');
-                $.post('/api/days/', function(data) {
-                    console.log(data);
-                });
+
+            $.post('/api/days/', function(data) {
+                console.log('Added day:', data);
+            });
+
             switchTo(newDay);
         }
 
@@ -68,15 +68,34 @@ varPromise.then(function() {
             // prevent deleting last day
             if (days.length < 2 || !currentDay) return;
             // remove from the collection
-            var index = days.indexOf(currentDay),
-                previousDay = days.splice(index, 1)[0],
-                newCurrent = days[index] || days[index - 1];
-            // fix the remaining day numbers
-            days.forEach(function(day, i) {
-                day.setNumber(i + 1);
+
+            var index, dayId, previousDay, newCurrent;
+            days.filter(function(ele, idx) {
+                if (currentDay.number === ele.number) {
+                    index = idx;
+                    dayId = ele.id;
+                }
             });
-            switchTo(newCurrent);
-            previousDay.hideButton();
+
+            $.ajax({
+                url: '/api/days/' + dayId,
+                type: 'DELETE',
+                success: function() {
+                    previousDay = days.splice(index, 1)[0];
+                    newCurrent = days[index] || days[index - 1];
+
+                    days.forEach(function(day, i) {
+                        day.setNumber(i + 1);
+                    });
+                    switchTo(newCurrent);
+                    previousDay.hideButton();
+
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+
         }
 
         // globally accessible module methods
@@ -84,7 +103,11 @@ varPromise.then(function() {
         var publicAPI = {
 
             load: function() {
-                $(addDay);
+                $(function() {
+                    if (!allDays.length) {
+                        addDay();
+                    }
+                });
             },
 
             switchTo: switchTo,
